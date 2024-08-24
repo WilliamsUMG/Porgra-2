@@ -1,0 +1,146 @@
+import javax.swing.*;
+import java.awt.event.*;
+import java.io.*;
+
+public class TextAnalyzer extends JFrame {
+    private JTextArea textArea;
+    private JFileChooser fileChooser;
+    
+    public TextAnalyzer() {
+        // Configuración del JFrame
+        setTitle("Analizador de Texto");
+        setSize(600, 400);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        
+        // Crear componentes
+        textArea = new JTextArea();
+        fileChooser = new JFileChooser();
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        add(scrollPane);
+        
+        // Crear barra de menú
+        JMenuBar menuBar = new JMenuBar();
+        
+        // Menú Archivo
+        JMenu menuArchivo = new JMenu("Archivo");
+        JMenuItem abrir = new JMenuItem("Abrir");
+        JMenuItem guardar = new JMenuItem("Guardar");
+        JMenuItem guardarComo = new JMenuItem("Guardar como");
+        
+        abrir.addActionListener(e -> abrirArchivo());
+        guardar.addActionListener(e -> guardarArchivo(false));
+        guardarComo.addActionListener(e -> guardarArchivo(true));
+        
+        menuArchivo.add(abrir);
+        menuArchivo.add(guardar);
+        menuArchivo.add(guardarComo);
+        menuBar.add(menuArchivo);
+        
+        // Menú Editar
+        JMenu menuEditar = new JMenu("Editar");
+        JMenuItem copiar = new JMenuItem("Copiar");
+        JMenuItem cortar = new JMenuItem("Cortar");
+        JMenuItem pegar = new JMenuItem("Pegar");
+        JMenuItem buscar = new JMenuItem("Buscar");
+        JMenuItem reemplazar = new JMenuItem("Reemplazar");
+        
+        copiar.addActionListener(e -> textArea.copy());
+        cortar.addActionListener(e -> textArea.cut());
+        pegar.addActionListener(e -> textArea.paste());
+        buscar.addActionListener(e -> buscarTexto());
+        reemplazar.addActionListener(e -> reemplazarTexto());
+        
+        menuEditar.add(copiar);
+        menuEditar.add(cortar);
+        menuEditar.add(pegar);
+        menuEditar.add(buscar);
+        menuEditar.add(reemplazar);
+        menuBar.add(menuEditar);
+        
+        setJMenuBar(menuBar);
+        
+        // Botón Procesar
+        JButton procesarBtn = new JButton("Procesar");
+        procesarBtn.addActionListener(e -> procesarTexto());
+        add(procesarBtn, "South");
+    }
+    
+    private void abrirArchivo() {
+        int returnValue = fileChooser.showOpenDialog(this);
+        if (returnValue == JFileChooser.APPROVE_OPTION) {
+            File file = fileChooser.getSelectedFile();
+            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                textArea.read(reader, null);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    private void guardarArchivo(boolean guardarComo) {
+        File file = null;
+        if (!guardarComo) {
+            file = fileChooser.getSelectedFile();
+        }
+        if (file == null || guardarComo) {
+            int returnValue = fileChooser.showSaveDialog(this);
+            if (returnValue == JFileChooser.APPROVE_OPTION) {
+                file = fileChooser.getSelectedFile();
+            }
+        }
+        if (file != null) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+                textArea.write(writer);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    private void buscarTexto() {
+        String searchTerm = JOptionPane.showInputDialog(this, "Ingrese la palabra a buscar:");
+        if (searchTerm != null && !searchTerm.isEmpty()) {
+            String text = textArea.getText();
+            int index = text.indexOf(searchTerm);
+            if (index != -1) {
+                textArea.setCaretPosition(index);
+                textArea.select(index, index + searchTerm.length());
+            } else {
+                JOptionPane.showMessageDialog(this, "Palabra no encontrada.");
+            }
+        }
+    }
+    
+    private void reemplazarTexto() {
+        String searchTerm = JOptionPane.showInputDialog(this, "Ingrese la palabra a reemplazar:");
+        String replacement = JOptionPane.showInputDialog(this, "Ingrese el nuevo texto:");
+        if (searchTerm != null && replacement != null) {
+            textArea.setText(textArea.getText().replace(searchTerm, replacement));
+        }
+    }
+    
+    private void procesarTexto() {
+        String text = textArea.getText();
+        StringBuilder sb = new StringBuilder();
+        String claveMurcielago = "murcielago";
+        String[] traducciones = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
+        
+        for (char c : text.toLowerCase().toCharArray()) {
+            int index = claveMurcielago.indexOf(c);
+            if (index != -1) {
+                sb.append(traducciones[index]);
+            } else {
+                sb.append(c);
+            }
+        }
+        
+        JOptionPane.showMessageDialog(this, "Texto traducido a clave murciélago:\n" + sb.toString());
+    }
+    
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            TextAnalyzer app = new TextAnalyzer();
+            app.setVisible(true);
+        });
+    }
+}
